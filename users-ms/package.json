@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "start": "tsc && node build/index.js",
+        "start:dev": "docker-compose up -d",
         "devstart": "nodemon ./index.ts"
     },
     "keywords": [],
