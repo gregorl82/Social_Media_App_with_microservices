@@ -1,0 +1,9 @@
+node_modules
+.eslintrc.js
+
+# Ignore all HTML files:
+*.html
+
+# Ignore all YAML files:
+*.yml
+*.yaml
