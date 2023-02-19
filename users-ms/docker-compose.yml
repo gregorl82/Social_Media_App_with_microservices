@@ -1,6 +1,26 @@
-version: "3"
+version: "3.9"
 
 services:
+    db:
+        image: postgres:15.2-alpine3.17
+        environment:
+            POSTGRES_USER: root
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: users_db
+        volumes:
+            - db_data:/var/lib/postresql/data
+        ports:
+            - 5432:5432
+        command: postgres -c max_connections=300
+
+    flyway:
+        image: flyway/flyway:9.15.0-alpine
+        command: -url=jdbc:postgresql://db:5432/users_db -user=root -password=password -connectRetries=60 migrate
+        volumes:
+            - ./database/sql:/flyway/sql
+        depends_on:
+            - db
+
     users-ms:
         build: .
         ports:
@@ -8,3 +28,9 @@ services:
         volumes:
             - .:/app
         command: npm run devstart
+        depends_on:
+            - db
+            - flyway
+
+volumes:
+    db_data:
