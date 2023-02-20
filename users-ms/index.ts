@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import app from "./App";
 import dbClient from "./database/dbClient";
 import User from "./models/User";
+import hashPassword from "./utils/hashPassword";
 
 const PORT = 8000;
 
@@ -33,13 +34,12 @@ app.get("/users", async (req: Request, res: Response) => {
 
 app.post("/users", async (req: Request, res: Response) => {
     try {
-        const { firstName, lastName, email } = req.body;
+        const { firstName, lastName, email, password } = req.body;
 
         const existingUserResults = await dbClient.query<User>(
             "SELECT * from users where email = $1",
             [email],
         );
-
         if (existingUserResults.rowCount > 0) {
             throw new Error("User with email address already exists!");
         }
@@ -48,8 +48,13 @@ app.post("/users", async (req: Request, res: Response) => {
             "INSERT into users(first_name, last_name, email) VALUES ($1, $2, $3) RETURNING *",
             [firstName, lastName, email],
         );
+        const { id, uuid } = result.rows[0];
 
-        const { uuid } = result.rows[0];
+        const hashedPassword = await hashPassword(password);
+        await dbClient.query(
+            "INSERT into user_passwords(user_id, password) VALUES ($1, $2)",
+            [id, hashedPassword],
+        );
 
         res.status(201).json({
             message: `Created user with uuid ${uuid}`,
