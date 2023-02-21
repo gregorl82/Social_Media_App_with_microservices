@@ -17,7 +17,7 @@ services:
         image: flyway/flyway:9.15.0-alpine
         command: -url=jdbc:postgresql://db:5432/users_db -user=root -password=password -connectRetries=60 migrate
         volumes:
-            - ./database/sql:/flyway/sql
+            - ./server/database/sql:/flyway/sql
         depends_on:
             - db
 

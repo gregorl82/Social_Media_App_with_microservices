@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import app from "./App";
-import dbClient from "./database/dbClient";
+import dbClient from "./database/dbPool";
 import User from "./models/User";
 import hashPassword from "./utils/hashPassword";
 

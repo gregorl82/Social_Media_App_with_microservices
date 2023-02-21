@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 
-const dbClient = new Pool({
+const dbPool = new Pool({
     host: "db",
     database: "users_db",
     user: "root",
@@ -10,4 +10,4 @@ const dbClient = new Pool({
     connectionTimeoutMillis: 2000,
 });
 
-export default dbClient;
+export default dbPool;
