@@ -4,6 +4,7 @@ interface User {
     email: string;
     uuid?: string;
     creationDate?: string;
+    lastModificationDate?: string;
     id?: number;
 }
 
