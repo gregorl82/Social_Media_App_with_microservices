@@ -6,6 +6,7 @@ import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yamljs";
 
+import authRouter from "./api/auth/routes";
 import userRouter from "./api/users/routes";
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(morgan("dev"));
 app.use(cors());
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+app.use("/auth", authRouter);
 app.use("/users", userRouter);
 
 export default app;

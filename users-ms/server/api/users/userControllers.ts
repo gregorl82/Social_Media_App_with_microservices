@@ -32,10 +32,7 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
 
-        const existingUserResults = await dbPool.query<User>(
-            "SELECT * from users where email = $1",
-            [email],
-        );
+        const existingUserResults = await dbPool.query<User>("SELECT * from users where email = $1", [email]);
         if (existingUserResults.rowCount > 0) {
             throw new Error("User with email address already exists!");
         }
@@ -49,10 +46,7 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
         const { id, uuid } = result.rows[0];
 
         const hashedPassword = await hashPassword(password);
-        await dbPool.query(
-            "INSERT into user_passwords(user_id, password) VALUES ($1, $2)",
-            [id, hashedPassword],
-        );
+        await dbPool.query("INSERT into user_passwords(user_id, password) VALUES ($1, $2)", [id, hashedPassword]);
 
         res.status(201).json({
             message: `Created user with uuid ${uuid}`,
@@ -66,9 +60,7 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 const getUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await dbPool.query("SELECT * from users WHERE id = $1", [
-            id,
-        ]);
+        const result = await dbPool.query("SELECT * from users WHERE id = $1", [id]);
         const user = result.rows[0];
         res.status(200).json({ user });
     } catch (error) {
@@ -80,10 +72,7 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await dbPool.query<User>(
-            "SELECT * from users WHERE id = $1",
-            [id],
-        );
+        const result = await dbPool.query<User>("SELECT * from users WHERE id = $1", [id]);
         const existingUser = result.rows[0];
         if (!existingUser) {
             res.status(404).json({ message: "User doesn't exist" });

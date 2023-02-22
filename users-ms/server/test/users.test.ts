@@ -14,16 +14,12 @@ describe("Users", () => {
         });
 
         it.skip("should return a 200 if request is successful", async () => {
-            const res = await application
-                .get("/users")
-                .set("Authorization", `Bearer ${token}`);
+            const res = await application.get("/users").set("Authorization", `Bearer ${token}`);
             expect(res.status).toBe(200);
         });
 
         it.skip("should return an array of users if request is successful", async () => {
-            const res = await application
-                .get("/users")
-                .set("Authorization", `Bearer ${token}`);
+            const res = await application.get("/users").set("Authorization", `Bearer ${token}`);
 
             expect(res.body).toHaveLength(1);
         });
@@ -52,10 +48,7 @@ describe("Users", () => {
                 email: "test@test.com",
             };
 
-            const res = await application
-                .post("/users")
-                .send(userRequestBody)
-                .set("Accept", "application/json");
+            const res = await application.post("/users").send(userRequestBody).set("Accept", "application/json");
 
             expect(res.status).toBe(401);
         });
@@ -65,10 +58,7 @@ describe("Users", () => {
                 password: "Testing123!",
             };
 
-            const res = await application
-                .post("/users")
-                .send(userRequestBody)
-                .set("Accept", "application/json");
+            const res = await application.post("/users").send(userRequestBody).set("Accept", "application/json");
 
             expect(res.status).toBe(400);
         });
@@ -78,10 +68,7 @@ describe("Users", () => {
                 email: "test@test.com",
             };
 
-            const res = await application
-                .post("/users")
-                .send(userRequestBody)
-                .set("Accept", "application/json");
+            const res = await application.post("/users").send(userRequestBody).set("Accept", "application/json");
 
             expect(res.status).toBe(400);
         });

@@ -16,4 +16,11 @@ CREATE TABLE IF NOT EXISTS user_passwords (
     password VARCHAR(255) NOT NULL,
     creation_date TIMESTAMP DEFAULT now() NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
-)
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255),
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+);

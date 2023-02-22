@@ -8,7 +8,8 @@
         "start:dev": "docker-compose up -d",
         "start:test": "docker-compose -f docker-compose.test.yml up --abort-on-container-exit tests users-ms db",
         "devstart": "nodemon ./server/index.ts",
-        "test": "jest --detectOpenHandles"
+        "test": "jest --detectOpenHandles",
+        "prettify": "npx prettier --write ."
     },
     "keywords": [],
     "author": "",
