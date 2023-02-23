@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../App";
-import dbPool from "../database/dbPool";
+import { dbPool } from "../database/dbPool";
 import User from "../models/User";
 
 const application = request(app);

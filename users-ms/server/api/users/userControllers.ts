@@ -8,7 +8,7 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     const db = new Database(dbPool);
 
     try {
-        const results = await db.findAll<{
+        const results = await db.findMany<{
             id: number;
             uuid: string;
             first_name: string;

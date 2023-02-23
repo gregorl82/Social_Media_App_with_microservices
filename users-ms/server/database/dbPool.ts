@@ -18,7 +18,7 @@ class Database {
         this.pool = pool;
     }
 
-    async findOne<T extends object>(tableName: string, data: Partial<any>): Promise<T> {
+    async findOne<T extends object>(tableName: string, data: Record<string, unknown>): Promise<T> {
         const columns = Object.keys(data);
         const values = Object.values(data);
         const numberOfColumns = columns.length;
@@ -38,33 +38,31 @@ class Database {
         return result.rows[0] as T;
     }
 
-    async findMany<T extends object>(tableName: string, data: Partial<any>): Promise<T[]> {
-        const columns = Object.keys(data);
-        const values = Object.values(data);
-        const numberOfColumns = columns.length;
+    async findMany<T extends object>(tableName: string, data?: Record<string, unknown>): Promise<T[]> {
+        const values = [];
+        let clauses = "";
 
-        const clauses = columns
-            .map((column, index) => {
+        if (data) {
+            clauses += " WHERE ";
+            const columns = Object.keys(data);
+            const numberOfColumns = columns.length;
+            values.push(...Object.values(data));
+
+            columns.map((column, index) => {
                 const clause = `${column} = $${index + 1}`;
                 if (index < numberOfColumns - 1) {
-                    return clause + " AND ";
+                    return (clauses += `${clause} AND `);
                 }
-                return clause;
-            })
-            .join("");
+                return (clauses += clause);
+            });
+        }
 
-        const query = `SELECT * FROM ${tableName} WHERE ${clauses}`;
+        const query = `SELECT * FROM ${tableName}${clauses}`;
         const result = await this.pool.query(query, values);
         return result.rows as T[];
     }
 
-    async findAll<T extends object>(tableName: string): Promise<T[]> {
-        const query = `SELECT * FROM ${tableName}`;
-        const results = await this.pool.query(query);
-        return results.rows as T[];
-    }
-
-    async insert<T extends object>(tableName: string, data: Partial<any>): Promise<T> {
+    async insert<T extends object>(tableName: string, data: Record<string, unknown>): Promise<T> {
         const columns = Object.keys(data).join(",");
         const values = Object.values(data);
 
