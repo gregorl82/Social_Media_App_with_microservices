@@ -1,13 +1,22 @@
 import { Request, Response } from "express";
 
-import dbPool from "../../database/dbPool";
+import { dbPool, Database } from "../../database/dbPool";
 import User from "../../models/User";
 import hashPassword from "../../utils/hashPassword";
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+    const db = new Database(dbPool);
+
     try {
-        const queryResult = await dbPool.query("SELECT * FROM users");
-        const results = queryResult.rows;
+        const results = await db.findAll<{
+            id: number;
+            uuid: string;
+            first_name: string;
+            last_name: string;
+            email: string;
+            creation_date: string;
+            last_modification_date: string;
+        }>("users");
 
         const users: User[] = results.map((result) => {
             return {
@@ -29,25 +38,27 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
 };
 
 const createUser = async (req: Request, res: Response): Promise<void> => {
+    const db = new Database(dbPool);
+
     try {
         const { email, password } = req.body;
 
-        const existingUserResults = await dbPool.query<User>("SELECT * from users where email = $1", [email]);
-        if (existingUserResults.rowCount > 0) {
+        const existingUsers = await db.findMany<User[]>("users", { email });
+        if (existingUsers.length > 0) {
             throw new Error("User with email address already exists!");
         }
 
         const timestamp = new Date();
 
-        const result = await dbPool.query<User>(
-            "INSERT into users(email, creation_date, last_modification_date) VALUES ($1, $2, $2) RETURNING *",
-            [email, timestamp],
-        );
-        const { id, uuid } = result.rows[0];
+        const result = await db.insert<User>("users", {
+            email,
+            creation_date: timestamp,
+            last_modification_date: timestamp,
+        });
 
+        const { id, uuid } = result;
         const hashedPassword = await hashPassword(password);
-        await dbPool.query("INSERT into user_passwords(user_id, password) VALUES ($1, $2)", [id, hashedPassword]);
-
+        await db.insert("user_passwords", { user_id: id, password: hashedPassword });
         res.status(201).json({
             message: `Created user with uuid ${uuid}`,
         });

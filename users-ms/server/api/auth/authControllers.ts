@@ -1,25 +1,27 @@
 import { Request, Response } from "express";
 import Jwt from "jsonwebtoken";
 
-import dbPool from "../../database/dbPool";
+import { Database, dbPool } from "../../database/dbPool";
+import Password from "../../models/Password";
 import { TokenType } from "../../models/Token";
+import User from "../../models/User";
 import checkPassword from "../../utils/checkPassword";
 
 const TOKEN_EXPIRY = 60 * 15;
 
 const login = async (req: Request, res: Response): Promise<void> => {
+    const db = new Database(dbPool);
+
     try {
         const { email, password } = req.body;
-        const result = await dbPool.query("SELECT * FROM users WHERE email = $1", [email]);
-        const user = result.rows[0];
+        const user = await db.findOne<User>("users", { email });
         if (!user) {
             res.status(401).json({
                 message: "Login unsuccessful",
             });
             return;
         }
-        const passwordResult = await dbPool.query("SELECT * FROM user_passwords WHERE user_id = $1", [user.id]);
-        const dbPassword = passwordResult.rows[0];
+        const dbPassword = await db.findOne<Password>("user_passwords", { user_id: user.id });
         const passwordsMatch = await checkPassword(password, dbPassword.password);
         if (!passwordsMatch) {
             res.status(401).json({
@@ -31,11 +33,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
         const tokenBody = { userUuid: user.uuid };
         const accessToken = Jwt.sign(tokenBody, "secret", { expiresIn: TOKEN_EXPIRY });
 
-        await dbPool.query("INSERT INTO tokens(user_id, token, type) VALUES ($1, $2, $3)", [
-            user.id,
-            accessToken,
-            TokenType.ACCESS,
-        ]);
+        await db.insert("tokens", { user_id: user.id, token: accessToken, type: TokenType.ACCESS });
 
         res.status(200).set("Authorization", accessToken).json({ message: "You have logged in!" });
     } catch (error) {
