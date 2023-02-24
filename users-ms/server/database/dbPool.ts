@@ -11,6 +11,12 @@ const dbPool = new Pool({
     connectionTimeoutMillis: 2000,
 });
 
+enum UsersDbTable {
+    USERS = "users",
+    TOKENS = "tokens",
+    PASSWORDS = "user_passwords",
+}
+
 class Database {
     private pool: Pool;
 
@@ -66,13 +72,13 @@ class Database {
         const columns = Object.keys(data).join(",");
         const values = Object.values(data);
 
-        const setValues = values
+        const insertValuePlaceholders = values
             .map((_, index) => {
                 return `$${index + 1}`;
             })
             .join(",");
 
-        const query = `INSERT INTO ${tableName} (${columns}) VALUES (${setValues}) RETURNING *`;
+        const query = `INSERT INTO ${tableName} (${columns}) VALUES (${insertValuePlaceholders}) RETURNING *`;
 
         const result = await this.pool.query(query, values);
         return result.rows[0] as T;
@@ -83,4 +89,4 @@ class Database {
     }
 }
 
-export { dbPool, Database };
+export { dbPool, Database, UsersDbTable };
