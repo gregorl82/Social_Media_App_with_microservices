@@ -1,4 +1,4 @@
-import { Database, UsersDbTable } from "../database/dbPool";
+import { Database, UsersDbTable } from "../database/database";
 import { Token, TokenType } from "../models/Token";
 
 class TokenService {

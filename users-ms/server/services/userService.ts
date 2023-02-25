@@ -1,4 +1,5 @@
-import { Database, UsersDbTable } from "../database/dbPool";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Database, UsersDbTable } from "../database/database";
 import User from "../models/User";
 
 class UserService {
@@ -26,14 +27,28 @@ class UserService {
         return users;
     }
 
-    async getUserByEmail(email: string): Promise<User> {
+    async getUserByEmail(email: string): Promise<User | undefined> {
         const result = await this.db.findOne<User>(UsersDbTable.USERS, { email });
+        if (!result) {
+            return undefined;
+        }
         const user = this.mapDbResultToUser(result);
         return user;
     }
 
     async getUserById(id: string): Promise<User> {
         const result = await this.db.findOne<User>(UsersDbTable.USERS, { id });
+        const user = this.mapDbResultToUser(result);
+        return user;
+    }
+
+    async createUser(email: string): Promise<User> {
+        const timestamp = new Date();
+        const result = await this.db.insert<User>(UsersDbTable.USERS, {
+            email,
+            creation_date: timestamp,
+            last_modification_date: timestamp,
+        });
         const user = this.mapDbResultToUser(result);
         return user;
     }

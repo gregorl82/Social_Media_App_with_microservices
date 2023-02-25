@@ -24,7 +24,7 @@ class Database {
         this.pool = pool;
     }
 
-    async findOne<T extends object>(tableName: string, data: Record<string, unknown>): Promise<T> {
+    async findOne<T extends object>(tableName: string, data: Record<string, any>): Promise<T> {
         const columns = Object.keys(data);
         const values = Object.values(data);
         const numberOfColumns = columns.length;
@@ -44,7 +44,7 @@ class Database {
         return result.rows[0] as T;
     }
 
-    async findMany<T extends object>(tableName: string, data?: Record<string, unknown>): Promise<T[]> {
+    async findMany<T extends object>(tableName: string, data?: Record<string, any>): Promise<T[]> {
         const values = [];
         let clauses = "";
 
@@ -68,7 +68,7 @@ class Database {
         return result.rows as T[];
     }
 
-    async insert<T extends object>(tableName: string, data: Record<string, unknown>): Promise<T> {
+    async insert<T extends object>(tableName: string, data: Record<string, any>): Promise<T> {
         const columns = Object.keys(data).join(",");
         const values = Object.values(data);
 
@@ -82,6 +82,25 @@ class Database {
 
         const result = await this.pool.query(query, values);
         return result.rows[0] as T;
+    }
+
+    async delete(tableName: string, data: Record<string, any>): Promise<string> {
+        const columns = Object.keys(data);
+        const numberOfColumns = columns.length;
+        const values = Object.values(data);
+        let clauses = "";
+
+        columns.map((column, index) => {
+            clauses += `${column} = $${index + 1}`;
+            if (index + 1 < numberOfColumns) {
+                clauses += " AND ";
+            }
+        });
+
+        const query = `DELETE FROM ${tableName} WHERE ${clauses} RETURNING id`;
+        const result = await this.pool.query(query, values);
+
+        return `Successfully removed entity with id ${result.rows[0]}`;
     }
 
     async close(): Promise<void> {

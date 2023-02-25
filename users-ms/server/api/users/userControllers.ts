@@ -1,35 +1,17 @@
 import { Request, Response } from "express";
 
-import { dbPool, Database } from "../../database/dbPool";
-import User from "../../models/User";
-import hashPassword from "../../utils/hashPassword";
+import { dbPool, Database } from "../../database/database";
+
+import PasswordService from "../../services/passwordService";
+import UserService from "../../services/userService";
+
+const db = new Database(dbPool);
+const userService = new UserService(db);
+const passwordService = new PasswordService(db);
 
 const getAllUsers = async (req: Request, res: Response): Promise<void> => {
-    const db = new Database(dbPool);
-
     try {
-        const results = await db.findMany<{
-            id: number;
-            uuid: string;
-            first_name: string;
-            last_name: string;
-            email: string;
-            creation_date: string;
-            last_modification_date: string;
-        }>("users");
-
-        const users: User[] = results.map((result) => {
-            return {
-                id: result.id,
-                uuid: result.uuid,
-                firstName: result.first_name,
-                lastName: result.last_name,
-                email: result.email,
-                creationDate: result.creation_date,
-                lastModificationDate: result.last_modification_date,
-            };
-        });
-
+        const users = await userService.getAllUsers();
         res.status(200).json({ users });
     } catch (error) {
         console.log(error);
@@ -38,27 +20,14 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
 };
 
 const createUser = async (req: Request, res: Response): Promise<void> => {
-    const db = new Database(dbPool);
-
     try {
         const { email, password } = req.body;
-
-        const existingUsers = await db.findMany<User[]>("users", { email });
-        if (existingUsers.length > 0) {
+        const existingUser = await userService.getUserByEmail(email);
+        if (existingUser) {
             throw new Error("User with email address already exists!");
         }
-
-        const timestamp = new Date();
-
-        const result = await db.insert<User>("users", {
-            email,
-            creation_date: timestamp,
-            last_modification_date: timestamp,
-        });
-
-        const { id, uuid } = result;
-        const hashedPassword = await hashPassword(password);
-        await db.insert("user_passwords", { user_id: id, password: hashedPassword });
+        const { uuid } = await userService.createUser(email);
+        await passwordService.storePassword(uuid, password);
         res.status(201).json({
             message: `Created user with uuid ${uuid}`,
         });
@@ -71,8 +40,7 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 const getUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await dbPool.query("SELECT * from users WHERE id = $1", [id]);
-        const user = result.rows[0];
+        const user = await userService.getUserById(id);
         res.status(200).json({ user });
     } catch (error) {
         console.log(error);
@@ -83,8 +51,7 @@ const getUser = async (req: Request, res: Response): Promise<void> => {
 const updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const result = await dbPool.query<User>("SELECT * from users WHERE id = $1", [id]);
-        const existingUser = result.rows[0];
+        const existingUser = await userService.getUserById(id);
         if (!existingUser) {
             res.status(404).json({ message: "User doesn't exist" });
             return;

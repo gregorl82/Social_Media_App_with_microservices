@@ -1,5 +1,6 @@
-import { Database, UsersDbTable } from "../database/dbPool";
+import { Database, UsersDbTable } from "../database/database";
 import Password from "../models/Password";
+import hashPassword from "../utils/hashPassword";
 
 class PasswordService {
     private db: Database;
@@ -22,8 +23,9 @@ class PasswordService {
         return password;
     }
 
-    async insertPassword(userId: string, userPassword: string): Promise<void> {
-        await this.db.insert<Password>(UsersDbTable.PASSWORDS, { user_id: userId, password: userPassword });
+    async storePassword(userId: string, password: string): Promise<void> {
+        const hashedPassword = hashPassword(password);
+        await this.db.insert<Password>(UsersDbTable.PASSWORDS, { user_id: userId, password: hashedPassword });
     }
 }
 
