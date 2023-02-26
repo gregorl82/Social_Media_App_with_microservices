@@ -22,9 +22,8 @@ const getAllUsers = async (req: Request, res: Response): Promise<void> => {
 const createUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
-
-        const { uuid } = await userService.createUser(email);
-        await passwordService.storePassword(uuid, password);
+        const { id, uuid } = await userService.createUser(email);
+        await passwordService.storePassword(id, password);
         res.status(201).json({
             message: `Created user with uuid ${uuid}`,
         });

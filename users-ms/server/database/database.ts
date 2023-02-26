@@ -69,14 +69,14 @@ class Database {
     }
 
     async insert<T extends object>(tableName: string, data: Record<string, any>): Promise<T> {
-        const columns = Object.keys(data).join(",");
+        const columns = Object.keys(data).join(", ");
         const values = Object.values(data);
 
         const insertValuePlaceholders = values
             .map((_, index) => {
                 return `$${index + 1}`;
             })
-            .join(",");
+            .join(", ");
 
         const query = `INSERT INTO ${tableName} (${columns}) VALUES (${insertValuePlaceholders}) RETURNING *`;
 

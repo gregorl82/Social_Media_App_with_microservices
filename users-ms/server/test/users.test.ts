@@ -1,7 +1,6 @@
 import request from "supertest";
 import app from "../App";
 import { dbPool } from "../database/database";
-import User from "../models/User";
 
 const application = request(app);
 const token = "";
@@ -34,15 +33,15 @@ describe("Users", () => {
 
             const res = await application
                 .post("/users")
-                .send(userRequestBody)
                 .set("Authorization", `Bearer ${token}`)
-                .set("Accept", "application/json");
+                .set("Accept", "application/json")
+                .send(userRequestBody);
 
             expect(res.status).toBe(201);
         });
 
         it.skip("should return a 401 status code if a token is missing from request headers", async () => {
-            const userRequestBody: User = {
+            const userRequestBody = {
                 firstName: "Tester",
                 lastName: "McTesterson",
                 email: "test@test.com",
