@@ -24,7 +24,7 @@ class PasswordService {
     }
 
     async storePassword(userId: string, password: string): Promise<void> {
-        const hashedPassword = hashPassword(password);
+        const hashedPassword = await hashPassword(password);
         await this.db.insert<Password>(UsersDbTable.PASSWORDS, { user_id: userId, password: hashedPassword });
     }
 }

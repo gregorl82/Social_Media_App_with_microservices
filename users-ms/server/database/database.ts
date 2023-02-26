@@ -84,6 +84,35 @@ class Database {
         return result.rows[0] as T;
     }
 
+    async update<T extends object>(
+        tableName: string,
+        data: Record<string, any>,
+        clauses: Record<string, any>,
+    ): Promise<T> {
+        const updateColumns = Object.keys(data);
+        const updateValues = Object.values(data);
+        const numberOfUpdateColumns = updateColumns.length;
+
+        const update = updateColumns
+            .map((column, index) => {
+                return ` ${column} = $${index + 1}`;
+            })
+            .join(",");
+
+        const clauseColumns = Object.keys(clauses);
+        const clauseValues = Object.values(clauses);
+
+        const clause = clauseColumns.map((column, index) => {
+            return ` ${column} = $${index + numberOfUpdateColumns + 1}`;
+        });
+
+        const values = [...updateValues, ...clauseValues];
+        const query = `UPDATE ${tableName} SET${update} WHERE${clause} RETURNING *`;
+
+        const result = await this.pool.query(query, values);
+        return result.rows[0] as T;
+    }
+
     async delete(tableName: string, data: Record<string, any>): Promise<string> {
         const columns = Object.keys(data);
         const numberOfColumns = columns.length;
